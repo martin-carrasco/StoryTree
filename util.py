@@ -6,7 +6,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters, PunktTrainer
 import nltk.data
 from nltk.tokenize import sent_tokenize
-from w2v_embedding import google_model
+#from w2v_embedding import google_model
 from sklearn.metrics import pairwise_distances
 import tensorflow_datasets as tfds
 from itertools import combinations
@@ -121,7 +121,7 @@ def preprocess_text(text):
     words = word_tokenize(text)
     all_stopwords = stopwords.words('english')
     words = [word for word in words if not word in all_stopwords]
-    words = [w for w in words if w in google_model.key_to_index.keys()]
+    #words = [w for w in words if w in google_model.key_to_index.keys()]
     return words
 
 

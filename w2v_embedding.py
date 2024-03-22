@@ -2,7 +2,7 @@ import gensim
 import numpy as np
 
 
-google_model = gensim.models.KeyedVectors.load_word2vec_format('../bert/resources/GoogleNews-vectors-negative300.bin', binary=True)
+#google_model = gensim.models.KeyedVectors.load_word2vec_format('./GoogleNews-vectors-negative300.bin', binary=True)
 
 def get_w2v(words):
     vecs = np.empty([0, 300])

@@ -1,7 +1,7 @@
 Visualization:
   Scale: 1.5
-  Input: 'input/sample_text.txt'
-  Output: 'output/sample_story_tree.ipe'
+  Input: 'input/sample_marcus_1_EDUs.txt'
+  Output: 'output/sample_marcus_1_BERT_EDU_TRAINING.ipe'
   Short_sents_std: 1.5
   Closeness: 0.15
   
@@ -9,3 +9,17 @@ Summarization:
   Short_sents_std: 1.5
   Closeness: 0.15
   Method: "Salient_STL"
+
+BERT:
+  InputBase: 'input/british_base_text.txt'
+  OutputWordBERT: 'output/british_word_BERT.pt'
+  OutputSentBERT: 'output/british_sent_BERT.pt'
+  InputStoryTree: 'output/british_sent_BERT.pt'
+  OutputStoryTree: 'output/british_sent_BERT.ipe'
+Summary:
+  Embeddings: 'output/british_roberta.pt'
+  InputText: 'input/british_base_text.txt' 
+  CompText: 'input/british_highlights.txt'
+roBERTa:
+  InputBase: 'input/british_base_text.txt'
+  OutputWordBERT: 'output/british_roberta.pt'
