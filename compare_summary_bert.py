@@ -161,7 +161,7 @@ def split_in_sents(row):
 
 def run_all_datasets(data_generated=False, embeddings_generated=False):
     rouge = evaluate.load('rouge')
-    cnn_data = load_dataset("cnn_dailymail", '2.0.0', data_dir='/var/scratch/mca305')
+    cnn_data = load_dataset("cnn_dailymail", '2.0.0', cache_dir='/var/scratch/mca305')
     cnn_data_test = cnn_data['test']
     cnn_data_validation = cnn_data['validation']
 
