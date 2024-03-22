@@ -20,10 +20,10 @@ disable_progress_bar()
 
 # model = AutoModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
 # tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
-# tokenizer = AutoTokenizer.from_pretrained("sileod/roberta-base-discourse-marker-prediction")
-# model = AutoModelForSequenceClassification.from_pretrained("sileod/roberta-base-discourse-marker-prediction", output_hidden_states=True)
-tokenizer = AutoTokenizer.from_pretrained("FacebookAI/roberta-base")
-model = AutoModelForSequenceClassification.from_pretrained("FacebookAI/roberta-base", output_hidden_states=True)
+tokenizer = AutoTokenizer.from_pretrained("sileod/roberta-base-discourse-marker-prediction")
+model = AutoModelForSequenceClassification.from_pretrained("sileod/roberta-base-discourse-marker-prediction", output_hidden_states=True)
+#tokenizer = AutoTokenizer.from_pretrained("FacebookAI/roberta-base")
+#model = AutoModelForSequenceClassification.from_pretrained("FacebookAI/roberta-base", output_hidden_states=True)
 
 def mean_pooling(model_output, attention_mask):
     
@@ -159,9 +159,9 @@ def split_in_sents(row):
 
 
 
-def run_all_datasets(data_generated=True, embeddings_generated=False):
+def run_all_datasets(data_generated=False, embeddings_generated=False):
     rouge = evaluate.load('rouge')
-    cnn_data = load_dataset("cnn_dailymail", '2.0.0')
+    cnn_data = load_dataset("cnn_dailymail", '2.0.0', data_dir='/var/scratch/mca305')
     cnn_data_test = cnn_data['test']
     cnn_data_validation = cnn_data['validation']
 
@@ -180,13 +180,14 @@ def run_all_datasets(data_generated=True, embeddings_generated=False):
 
     if not embeddings_generated:
         if not data_generated:
-            N = 30 
-            small_news = cnn_data_validation.filter(lambda x: len(x['article']) < 800)
-            index = random.sample(range(0, len(small_news) - 1), N)
-            small_DS = small_news.select(index)
+            N = 500
+            #small_news = cnn_data_validation.filter(lambda x: len(x['article']) < 800)
+            index = random.sample(range(0, len(cnn_data_validation) - 1), N)
+            small_DS = cnn_data_validation.select(index)
 
             small_DS = small_DS.map(split_in_sents, remove_columns=small_DS.column_names, batched=True)
-            small_DS.save_to_disk("data_parsed_roberta")
+            small_DS.save_to_disk("data_sent_parsed")
+            exit()
         else:
             small_DS = datasets.load_from_disk("data_parsed_roberta_edus")
             small_DS = cnn_data_validation.filter(lambda x: x['id'] in small_DS['article_id'])
