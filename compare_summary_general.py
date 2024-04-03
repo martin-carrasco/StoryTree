@@ -187,8 +187,11 @@ def main(N=-1, model_type: ModelType=ModelType.ROBERTA_BASE):
     cnt = 0
 
     if not data_generated:
-        index = random.sample(range(0, len(cnn_data_validation) - 1), N)
-        small_DS = cnn_data_validation.select(index)
+        if N != -1:
+            index = random.sample(range(0, len(cnn_data_validation) - 1), N)
+            small_DS = cnn_data_validation.select(index)
+        else:
+            small_DS = cnn_data_validation
 
         small_DS = small_DS.map(split_in_sents, remove_columns=small_DS.column_names, batched=True)
         small_DS.save_to_disk(f"{base_dir}/{data_dir}")
@@ -256,5 +259,5 @@ def main(N=-1, model_type: ModelType=ModelType.ROBERTA_BASE):
 
 
 if __name__ == "__main__":
-    main()
+    main(model_type=ModelType.ROBERTA_BASE)
 
