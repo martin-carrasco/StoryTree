@@ -1,4 +1,5 @@
 import numpy as np
+import cupyx as cpx
 from sklearn.metrics import pairwise_distances
 import util
 import pandas as pd
@@ -242,6 +243,14 @@ def get_hierarchy_summary_ids(embs):
     summary_untrimmed = np.sort(
         minimize_average_distance_to_trimmed_tree_seed_selection(seeds, embs, hn.h_nodes_adj, trimmed_c))
     return summary_untrimmed, trimmed, important
+
+
+def get_k_center_summary_fast(summary_length, embs, sents):
+    distance_matrix = cpx.scipy.spatial.distance.cdist(embs, embs, metric='cosine')
+    summary = util.k_centers(distance_matrix, k=summary_length)
+    summary_text = [sents[x] for x in summary]
+    return summary_text
+
 
 
 def get_k_center_summary(summary_length, embs, sents):
