@@ -66,9 +66,9 @@ def evaluate_model(model, dataset: datasets.Dataset):
         final_embs = []
         for data in tqdm(data_loader):
             outputs = model(data['input_ids'], token_type_ids=None, attention_mask=data['attention_masks'])
-            print('Evaluated')
+            print('Evaluated', flush=True)
             embs = mean_pooling(outputs, data['attention_masks'])
-            print('Pooled')
+            print('Pooled', flush=True)
             '''
             hidden_states = outputs.hidden_states
             token_embeddings = torch.stack(hidden_states, dim=0)
@@ -82,13 +82,13 @@ def evaluate_model(model, dataset: datasets.Dataset):
         return final_embs
 
 def gen_emebddings(tokenizer, model, ds: datasets.Dataset):
-    print('Generating embeddings')
+    print('Generating embeddings', flush=True)
     output_dict = generate_embeddings(tokenizer, ds)
 
     ds = ds.add_column('input_ids', output_dict['input_ids'].tolist())
     ds_embs = ds.add_column('attention_masks', output_dict['attention_masks'].tolist())
 
-    print('Evaluating the model')
+    print('Evaluating the model', flush=True)
     embs = evaluate_model(model, ds_embs)
     ds_embs = ds_embs.add_column('embeddings', embs)
     return ds_embs
@@ -209,7 +209,7 @@ def main(N=-1, model_type: ModelType=ModelType.ROBERTA_BASE):
     else:
         small_DS = datasets.load_from_disk(f"{base_dir}/{embedding_dir}")
 
-    print('Embeddings extracted... now calculating STs')
+    print('Embeddings extracted... now calculating STs', flush=True)
     unique_ids = list(set(small_DS['article_id']))
     for u_id in tqdm(unique_ids):
         current_ds = small_DS.filter(lambda x: x['article_id'] == u_id)
@@ -250,7 +250,7 @@ def main(N=-1, model_type: ModelType=ModelType.ROBERTA_BASE):
         cnt += 1
 
         ## Eval scores ROBERTA
-        print(cnt)
+        print(cnt, flush=True)
 
     df = pd.DataFrame.from_dict(eval_methods)
     df.to_csv(f'scoring_{model_name}.csv')
