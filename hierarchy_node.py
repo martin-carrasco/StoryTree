@@ -13,6 +13,7 @@ class HierarchyNode:
             self.distance_matrix = elements
         else:
             self.distance_matrix = pairwise_distances(elements, metric=metric)
+        print(f'Distance matrix shape:', self.distance_matrix.shape)
         self.persistence = []
         self.size = self.distance_matrix.shape[0]
         self.edges = self.initialize_edges(self.distance_matrix)
@@ -89,6 +90,7 @@ class HierarchyNode:
     def calculate_persistence(self):
         b = self.step()
         while b:
+            print(f'Len edges: {self.edges}')
             b = self.step()
         self.root = np.max(list(self.h_nodes_adj.keys()))
         self.n_leaves = np.min(list(self.h_nodes_adj.keys()))
