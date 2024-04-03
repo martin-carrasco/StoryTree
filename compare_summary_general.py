@@ -250,7 +250,7 @@ def main(N=-1, model_type: ModelType=ModelType.ROBERTA_BASE):
         cnt += 1
 
         ## Eval scores ROBERTA
-        print(cnt, flush=True)
+        print(f'{cnt} out of {len(unique_ids)}', flush=True)
 
     df = pd.DataFrame.from_dict(eval_methods)
     df.to_csv(f'scoring_{model_name}.csv')
