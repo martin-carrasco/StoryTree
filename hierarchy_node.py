@@ -89,9 +89,10 @@ class HierarchyNode:
 
     def calculate_persistence(self):
         b = self.step()
+        print(f'Len edges: {len(self.edges)}')
         while b:
-            print(f'Len edges: {len(self.edges)}')
             b = self.step()
+        print(f'Len edges: {len(self.edges)}')
         self.root = np.max(list(self.h_nodes_adj.keys()))
         self.n_leaves = np.min(list(self.h_nodes_adj.keys()))
         self.fill_presenters()
