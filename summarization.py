@@ -2,6 +2,7 @@ import numpy as np
 import cupyx as cpx
 from sklearn.metrics import pairwise_distances
 import util
+import time
 import pandas as pd
 from hierarchy_node import HierarchyNode
 
@@ -254,8 +255,18 @@ def get_k_center_summary_fast(summary_length, embs, sents):
 
 
 def get_k_center_summary(summary_length, embs, sents):
-    summary = util.k_centers(util.pairwise_distances(embs, metric='cosine'), k=summary_length)
+    t_1 = time.time()
+    distance_matrix = util.pairwise_distances(embs, metric='cosine')
+    t_2 = time.time()
+    print(f'Time to calculate distance matrix: {t_2 - t_1}')
+    t_1 = time.time()
+    summary = util.k_centers(distance_matrix, k=summary_length)
+    t_2 = time.time()
+    print(f'Time to calculate k-center: {t_2 - t_1}')
+    t_1 = time.time()
     summary = np.sort(list(summary))
+    t_2 = time.time()
+    print(f'Time to sort summary: {t_2 - t_1}')
     summary_text = [sents[x] for x in summary]
     return summary_text
 
