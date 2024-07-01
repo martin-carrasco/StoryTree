@@ -1,5 +1,4 @@
 import numpy as np
-import cupyx as cpx
 from sklearn.metrics import pairwise_distances
 import util
 import time
@@ -207,6 +206,7 @@ def get_hierarchy_summary(embs, sents):
     hn = HierarchyNode(embs)
     node_persistence = hn.calculate_persistence()
     root = np.max(list(hn.h_nodes_adj.keys()))
+    best_candidates = ()
     seeds, trimmed, important = trimming_algorithm(root, hn.h_nodes_adj, [], [])
     if len(seeds) > 5:
         candidates = get_all_salient_primary_pairs(important, hn.h_nodes_adj)
@@ -221,7 +221,7 @@ def get_hierarchy_summary(embs, sents):
 
     summary = np.sort(minimize_average_distance_seed_selection(seeds, hn.distance_matrix))
     summary_text = [sents[x] for x in summary]
-    return summary_text, hn.h_nodes_adj, trimmed, important, node_persistence
+    return summary_text, hn.h_nodes_adj, trimmed, important, node_persistence, best_candidates, hn
 
 
 def get_hierarchy_summary_ids(embs):
@@ -255,18 +255,9 @@ def get_k_center_summary_fast(summary_length, embs, sents):
 
 
 def get_k_center_summary(summary_length, embs, sents):
-    t_1 = time.time()
     distance_matrix = util.pairwise_distances(embs, metric='cosine')
-    t_2 = time.time()
-    print(f'Time to calculate distance matrix: {t_2 - t_1}')
-    t_1 = time.time()
     summary = util.k_centers(distance_matrix, k=summary_length)
-    t_2 = time.time()
-    print(f'Time to calculate k-center: {t_2 - t_1}')
-    t_1 = time.time()
     summary = np.sort(list(summary))
-    t_2 = time.time()
-    print(f'Time to sort summary: {t_2 - t_1}')
     summary_text = [sents[x] for x in summary]
     return summary_text
 

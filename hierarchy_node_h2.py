@@ -4,9 +4,30 @@ from sklearn.metrics import pairwise_distances
 from union_find import UnionFind
 import pandas as pd
 from ordered_set import OrderedSet
+import gudhi
+import networkx
+
+from typing import Tuple, Dict, List, Iterable
+
+class MergeTree:
+    def __init__(self, elements: Iterable, delta: float = 0.5, metric: str = 'cosine'):
+        self.elements = elements
+        self.distance_matrix = pairwise_distances(elements, metric=metric)
+        rips_complex = gudhi.RipsComplex(distance_matrix=self.distance_matrix,
+                                 max_edge_length=0.8) # TODO What value should this be?
+        self.simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
 
 
-class HierarchyNode:
+    
+    def calculate_persistence(self):
+        return self.simplex_tree.persistence()
+
+    def persistence_pairs(self):
+        self.simplex_tree.compute_persistence()
+        return self.simplex_tree.persistence_pairs()
+
+
+class HierarchyNodeH2:
 
     def __init__(self, elements, metric='cosine', use_distances=False):
         if use_distances:
@@ -31,11 +52,21 @@ class HierarchyNode:
         self.node_persistence = {}
         n = self.distance_matrix.shape[0]
         self.h_sentence_to_node = [0] * n
+        self.persistance_pairs_h1 = {}
+
+        # Make disjoint union sets 
+        # on time t=0
         for i in range(n):
             self.union_find.make_set(i, 0)
             self.node_birth(i)
 
     def initialize_edges(self, matrix):
+        """ Look at the upper diagonal of `matrix`
+            and push to the PQ `edges` a tuple with 
+            `dist, (i, j)` where `i` and `j` are the
+            indices of the elements in `matrix` that
+            have a distance greater than 0.
+        """
         edges = []
         n = matrix.shape[0]
         for i in range(n):
@@ -44,26 +75,48 @@ class HierarchyNode:
                     heappush(edges, (matrix[i, j], (i, j)))
         return edges
 
-    def connect_new_edge(self, e):
+    def connect_new_edge(self, e: Tuple[int, int]): 
+        """ Connect a new edge in the edge matrix
+
+        """
         x, y = e
         self.edge_matrix[x, y] = 1
         self.edge_matrix[y, x] = 1
 
     def connect_new_edges(self):
+        """ Get the smallest edge in the graph
+
+        """
+        # If there are no edges, then do nothing
         if len(self.edges) == 0:
             return []
         new_edges = []
+        # Pop the smallest elemment from the heap
+        # that is, the smallest distance `length`
+        # and the tuple `(i, j)` named `e`
         length, e = heappop(self.edges)
+        # Connect this edge in the edge_matrix
         self.connect_new_edge(e)
+        # Add as `new_edge`
         new_edges.append((length, e))
 
+        # If this was the last edge, then return
+        # a list with this last edge
         if len(self.edges) == 0:
             return new_edges
 
+        # Get the smallest value
         l, e = nsmallest(1, self.edges)[0]
+
+        # While the next smallest edge is smaller
+        # TODO Should l be always bigger since length is by definition
+        # the smallest edge?
         while l <= length:
+            # Pop the next smallest edge
             l, e = heappop(self.edges)
+            # Add this edge to the edge matrix
             self.connect_new_edge(e)
+            # Add this edge to the new edges
             new_edges.append((l,e))
             if len(self.edges) == 0:
                 break
@@ -71,7 +124,13 @@ class HierarchyNode:
         return new_edges
 
     def step(self):
+        """ A timestep in the persitence calculation
+        
+        """
         new_edges = self.connect_new_edges()
+
+        # If there are no new edges to connect
+        # we are done
         if len(new_edges) == 0:
             return False
 
@@ -87,9 +146,13 @@ class HierarchyNode:
         return True
 
     def calculate_persistence(self):
+        """ Calculate the persitent homology of the
+            hierarchy tree.
+        """
         b = self.step()
         while b:
             b = self.step()
+        ###
         self.root = np.max(list(self.h_nodes_adj.keys()))
         self.n_leaves = np.min(list(self.h_nodes_adj.keys()))
         self.fill_presenters()
@@ -176,10 +239,15 @@ class HierarchyNode:
         return False
 
     def node_birth(self, t):
+        """ Add a node birth to time `t`
+        """
         s = OrderedSet()
         s.add(t)
+        # Set the h_node_id-th node to a set containing i
         self.h_nodes[self.h_node_id] = s
+        # Set the i-th node to the h_node_id-th node id
         self.h_sentence_to_node[t] = self.h_node_id
+
         self.h_node_id += 1
 
     def fill_presenters(self):

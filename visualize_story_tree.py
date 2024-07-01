@@ -1,12 +1,36 @@
 import numpy as np
 import util
-import w2v_embedding as w2v_emb
+#import w2v_embedding as w2v_emb
+import torch
 from hierarchy_node import HierarchyNode
 import summarization
 import yaml
 from tree_encoding import TreeEncoding
 
 
+def make_word_embeddings_1(token_embeddings):
+
+    sentence_vecs = []
+    # `token_embeddings` is a [30 x 64 x 13 x 768] tensor.
+    # For each embeddings...
+    for sent in token_embeddings:
+        token_vecs_cat = []
+        # For each token in the sentence...
+        for token in sent:
+            
+            # `token` is a [13 x 768] tensor
+
+            # Concatenate the vectors (that is, append them together) from the last 
+            # four layers.
+            # Each layer vector is 768 values, so `cat_vec` is length 3,072.
+            cat_vec = torch.cat((token[-1], token[-2], token[-3], token[-4]), dim=0)
+            
+            # Use `cat_vec` to represent `token`.
+            token_vecs_cat.append(cat_vec)
+        token_tensor = torch.stack(token_vecs_cat, dim=0)
+        sentence_vecs.append(token_tensor)
+    sentence_tensor = torch.stack(sentence_vecs, dim=0)
+    return sentence_tensor
 def main():
     with open('config.yaml', 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
@@ -30,7 +54,7 @@ def run(input, output, scale, shortness, closeness):
     embs = w2v_emb.get_doc_embedding(prep_sents)
     prep_sents, sents, merged = util.cleanup_sentences(embs, prep_sents, sents, threshold=closeness, n_std=shortness)
     embs = w2v_emb.get_doc_embedding(prep_sents)
-    
+
     hierarchy = HierarchyNode(embs)
     hierarchy.calculate_persistence()
     adjacency = hierarchy.h_nodes_adj
